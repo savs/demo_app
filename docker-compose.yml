@@ -1,0 +1,69 @@
+services:
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    ports:
+      - "12345:12345"
+      - 4317:4317
+      - 4318:4318
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy
+      - /proc:/rootproc:ro
+      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
+      - /sys:/sys:ro
+      - /:/rootfs:ro
+      - /dev/disk/:/dev/disk:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    env_file:
+      - .env
+    environment:
+      ALLOY_DEPLOY_MODE: docker
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345 
+      - /etc/alloy/config.alloy
+      - --storage.path=/var/lib/alloy/data
+    restart: unless-stopped
+    devices:
+      - /dev/kmsg
+
+
+  php-app:
+    build:
+      context: ./PHP
+      dockerfile: Dockerfile
+    container_name: php-app
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    environment:
+      # OpenTelemetry configuration
+      OTEL_RESOURCE_ATTRIBUTES: "service.name=php-web,deployment.environment=development"
+      OTEL_SERVICE_NAME: php-web
+      OTEL_SERVICE_NAMESPACE: demo
+      OTEL_ENVIRONMENT: development
+      SERVICE_VERSION: ${SERVICE_VERSION:-1.0.0}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://alloy:4318}
+      OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+
+
+  ruby-app:
+    build:
+      context: ./Ruby
+      dockerfile: Dockerfile
+    container_name: ruby-app
+    ports:
+      - "4567:4567"
+    restart: unless-stopped
+    environment:
+      # OpenTelemetry configuration
+      OTEL_RESOURCE_ATTRIBUTES: "service.name=ruby-web,deployment.environment=development"
+      OTEL_SERVICE_NAME: ruby-web
+      OTEL_SERVICE_NAMESPACE: demo
+      OTEL_ENVIRONMENT: development
+      SERVICE_VERSION: ${SERVICE_VERSION:-1.0.0}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://alloy:4318}
+      OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      # OTEL_TRACES_EXPORTER: console

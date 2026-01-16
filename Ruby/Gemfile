@@ -1,0 +1,10 @@
+source 'https://rubygems.org'
+
+gem 'webrick'
+
+# OpenTelemetry SDK and exporters
+gem 'opentelemetry-sdk'
+gem 'opentelemetry-exporter-otlp'
+
+# Auto-instrumentation
+gem 'opentelemetry-instrumentation-all'

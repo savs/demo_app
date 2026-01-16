@@ -1,0 +1,260 @@
+remotecfg {
+	url            = "https://fleet-management-prod-014.grafana.net"
+	id             = sys.env("GCLOUD_REMOTECFG_ID")
+	poll_frequency = "60s"
+
+	basic_auth {
+		username = sys.env("GCLOUD_REMOTECFG_USERNAME")
+		password = sys.env("GCLOUD_TOKEN")
+	}
+}
+
+prometheus.remote_write "metrics_service" {
+	endpoint {
+		url = sys.env("METRICS_SERVICE_URL")
+
+		basic_auth {
+			username = sys.env("METRICS_SERVICE_USERNAME")
+			password = sys.env("GCLOUD_TOKEN")
+		}
+	}
+}
+
+loki.write "grafana_cloud_loki" {
+	endpoint {
+		url = sys.env("LOGS_SERVICE_URL")
+
+		basic_auth {
+			username = sys.env("LOGS_SERVICE_USERNAME")
+			password = sys.env("GCLOUD_TOKEN")
+		}
+	}
+}
+
+prometheus.exporter.cadvisor "integrations_cadvisor" {
+    docker_only = true
+}
+discovery.relabel "integrations_cadvisor" {
+    targets = prometheus.exporter.cadvisor.integrations_cadvisor.targets
+
+    rule {
+        target_label = "job"
+        replacement  = "integrations/docker"
+    }
+
+    rule {
+        target_label = "instance"
+        replacement  = constants.hostname
+    }
+}
+
+prometheus.relabel "integrations_cadvisor" {
+	forward_to = [prometheus.remote_write.metrics_service.receiver]
+
+	rule {
+		source_labels = ["__name__"]
+		regex         = "up|container_cpu_usage_seconds_total|container_fs_inodes_free|container_fs_inodes_total|container_fs_limit_bytes|container_fs_usage_bytes|container_last_seen|container_memory_usage_bytes|container_network_receive_bytes_total|container_network_tcp_usage_total|container_network_transmit_bytes_total|container_spec_memory_reservation_limit_bytes|machine_memory_bytes|machine_scrape_error"
+		action        = "keep"
+	}
+}
+
+prometheus.scrape "integrations_cadvisor" {
+    targets    = discovery.relabel.integrations_cadvisor.output
+    forward_to = [prometheus.relabel.integrations_cadvisor.receiver]
+}
+
+discovery.docker "logs_integrations_docker" {
+    host             = "unix:///var/run/docker.sock"
+    refresh_interval = "5s"
+}
+discovery.relabel "logs_integrations_docker" {
+    targets = []
+
+    rule {
+        target_label = "job"
+        replacement  = "integrations/docker"
+    }
+
+    rule {
+        target_label = "instance"
+        replacement  = constants.hostname
+    }
+
+    rule {
+        source_labels = ["__meta_docker_container_name"]
+        regex         = "/(.*)"
+        target_label  = "container"
+    }
+
+    rule {
+        source_labels = ["__meta_docker_container_log_stream"]
+        target_label  = "stream"
+    }
+}
+loki.source.docker "logs_integrations_docker" {
+    host             = "unix:///var/run/docker.sock"
+    targets          = discovery.docker.logs_integrations_docker.targets
+    forward_to       = [loki.write.grafana_cloud_loki.receiver]
+    relabel_rules    = discovery.relabel.logs_integrations_docker.rules
+    refresh_interval = "5s"
+}
+
+////// App o11y wizard
+otelcol.receiver.otlp "default" {
+	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.receiver.otlp/
+
+	// configures the default grpc endpoint "0.0.0.0:4317"
+	grpc { }
+	// configures the default http/protobuf endpoint "0.0.0.0:4318"
+	http { }
+
+	output {
+		metrics = [otelcol.processor.resourcedetection.default.input]
+		logs    = [otelcol.processor.resourcedetection.default.input]
+		traces  = [otelcol.processor.resourcedetection.default.input]
+	}
+}
+
+otelcol.processor.resourcedetection "default" {
+	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.processor.resourcedetection/
+	detectors = ["env", "system"]
+
+	system {
+		hostname_sources = ["os"]
+	}
+
+	output {
+		metrics = [otelcol.processor.transform.drop_unneeded_resource_attributes.input]
+		logs    = [otelcol.processor.transform.drop_unneeded_resource_attributes.input]
+		traces  = [otelcol.processor.transform.drop_unneeded_resource_attributes.input]
+	}
+}
+
+otelcol.processor.transform "drop_unneeded_resource_attributes" {
+	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.processor.transform/
+	error_mode = "ignore"
+
+	trace_statements {
+		context    = "resource"
+		statements = [
+			"delete_key(attributes, \"k8s.pod.start_time\")",
+			"delete_key(attributes, \"os.description\")",
+			"delete_key(attributes, \"os.type\")",
+			"delete_key(attributes, \"process.command_args\")",
+			"delete_key(attributes, \"process.executable.path\")",
+			"delete_key(attributes, \"process.pid\")",
+			"delete_key(attributes, \"process.runtime.description\")",
+			"delete_key(attributes, \"process.runtime.name\")",
+			"delete_key(attributes, \"process.runtime.version\")",
+		]
+	}
+
+	metric_statements {
+		context    = "resource"
+		statements = [
+			"delete_key(attributes, \"k8s.pod.start_time\")",
+			"delete_key(attributes, \"os.description\")",
+			"delete_key(attributes, \"os.type\")",
+			"delete_key(attributes, \"process.command_args\")",
+			"delete_key(attributes, \"process.executable.path\")",
+			"delete_key(attributes, \"process.pid\")",
+			"delete_key(attributes, \"process.runtime.description\")",
+			"delete_key(attributes, \"process.runtime.name\")",
+			"delete_key(attributes, \"process.runtime.version\")",
+		]
+	}
+
+	log_statements {
+		context    = "resource"
+		statements = [
+			"delete_key(attributes, \"k8s.pod.start_time\")",
+			"delete_key(attributes, \"os.description\")",
+			"delete_key(attributes, \"os.type\")",
+			"delete_key(attributes, \"process.command_args\")",
+			"delete_key(attributes, \"process.executable.path\")",
+			"delete_key(attributes, \"process.pid\")",
+			"delete_key(attributes, \"process.runtime.description\")",
+			"delete_key(attributes, \"process.runtime.name\")",
+			"delete_key(attributes, \"process.runtime.version\")",
+		]
+	}
+
+	output {
+		metrics = [otelcol.processor.transform.add_resource_attributes_as_metric_attributes.input]
+		logs    = [otelcol.processor.batch.default.input]
+		traces  = [
+			otelcol.processor.batch.default.input,
+			otelcol.connector.host_info.default.input,
+		]
+	}
+}
+
+otelcol.connector.host_info "default" {
+	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.connector.host_info/
+	host_identifiers = ["host.name"]
+
+	output {
+		metrics = [otelcol.processor.batch.default.input]
+	}
+}
+
+otelcol.processor.transform "add_resource_attributes_as_metric_attributes" {
+	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.processor.transform/
+	error_mode = "ignore"
+
+	metric_statements {
+		context    = "datapoint"
+		statements = [
+			"set(attributes[\"deployment.environment\"], resource.attributes[\"deployment.environment\"])",
+			"set(attributes[\"service.version\"], resource.attributes[\"service.version\"])",
+		]
+	}
+
+	output {
+		metrics = [otelcol.processor.batch.default.input]
+	}
+}
+
+otelcol.processor.batch "default" {
+	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.processor.batch/
+	output {
+		metrics = [otelcol.exporter.otlphttp.grafana_cloud.input]
+		logs    = [otelcol.exporter.otlphttp.grafana_cloud.input]
+		traces  = [otelcol.exporter.otlphttp.grafana_cloud.input]
+	}
+}
+
+otelcol.exporter.otlphttp "grafana_cloud" {
+	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.exporter.otlphttp/
+	client {
+		endpoint = sys.env("OTLP_ENDPOINT")
+		auth     = otelcol.auth.basic.grafana_cloud.handler
+	}
+}
+
+otelcol.auth.basic "grafana_cloud" {
+	// https://grafana.com/docs/alloy/latest/reference/components/otelcol.auth.basic/
+	username = sys.env("OTLP_USERNAME")
+	password = sys.env("OTLP_PASSWORD")
+}
+
+////// Profiles configuration
+// Receives profiles over HTTP
+pyroscope.receive_http "default" {
+   http {
+       listen_address = "0.0.0.0"
+       listen_port = 9999
+   }
+   forward_to = [pyroscope.write.grafana_cloud.receiver]
+}
+
+// Forwards profiles to Pyroscope
+pyroscope.write "grafana_cloud" {
+    endpoint {
+        url = sys.env("PYROSCOPE_ENDPOINT")
+        basic_auth {
+            username = sys.env("PYROSCOPE_USERNAME")
+            password = sys.env("PYROSCOPE_PASSWORD")
+        }
+    }
+}
