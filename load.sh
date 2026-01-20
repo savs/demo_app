@@ -26,7 +26,7 @@ trap cleanup INT TERM
 echo "Continuous Load Generator"
 echo "========================="
 echo "Concurrency: $CONCURRENCY workers per app"
-echo "Delay between requests: random 0-1s"
+echo "Delay between requests: random 0-3s"
 echo "Press Ctrl+C to stop"
 echo ""
 
@@ -46,7 +46,7 @@ echo ""
 
 # Function to generate random delay between 0 and 1 second
 random_delay() {
-    awk 'BEGIN{srand(); print rand()}'
+    awk 'BEGIN{srand(); print rand() * 3}'
 }
 
 # Function to continuously send requests

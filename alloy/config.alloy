@@ -1,13 +1,17 @@
-remotecfg {
-	url            = "https://fleet-management-prod-014.grafana.net"
-	id             = sys.env("GCLOUD_REMOTECFG_ID")
-	poll_frequency = "60s"
-
-	basic_auth {
-		username = sys.env("GCLOUD_REMOTECFG_USERNAME")
-		password = sys.env("GCLOUD_TOKEN")
-	}
+livedebugging {
+  enabled = true
 }
+
+// remotecfg {
+// 	url            = "https://fleet-management-prod-014.grafana.net"
+// 	id             = sys.env("GCLOUD_REMOTECFG_ID")
+// 	poll_frequency = "60s"
+
+// 	basic_auth {
+// 		username = sys.env("GCLOUD_REMOTECFG_USERNAME")
+// 		password = sys.env("GCLOUD_TOKEN")
+// 	}
+// }
 
 prometheus.remote_write "metrics_service" {
 	endpoint {
@@ -240,21 +244,21 @@ otelcol.auth.basic "grafana_cloud" {
 
 ////// Profiles configuration
 // Receives profiles over HTTP
-pyroscope.receive_http "default" {
-   http {
-       listen_address = "0.0.0.0"
-       listen_port = 9999
-   }
-   forward_to = [pyroscope.write.grafana_cloud.receiver]
-}
+// pyroscope.receive_http "default" {
+//    http {
+//        listen_address = "0.0.0.0"
+//        listen_port = 9999
+//    }
+//    forward_to = [pyroscope.write.grafana_cloud.receiver]
+// }
 
-// Forwards profiles to Pyroscope
-pyroscope.write "grafana_cloud" {
-    endpoint {
-        url = sys.env("PYROSCOPE_ENDPOINT")
-        basic_auth {
-            username = sys.env("PYROSCOPE_USERNAME")
-            password = sys.env("PYROSCOPE_PASSWORD")
-        }
-    }
-}
+// // Forwards profiles to Pyroscope
+// pyroscope.write "grafana_cloud" {
+//     endpoint {
+//         url = sys.env("PYROSCOPE_ENDPOINT")
+//         basic_auth {
+//             username = sys.env("PYROSCOPE_USERNAME")
+//             password = sys.env("PYROSCOPE_PASSWORD")
+//         }
+//     }
+// }
