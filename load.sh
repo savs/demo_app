@@ -4,7 +4,7 @@
 # Press Ctrl+C to stop
 
 PHP_URL="http://localhost:8080"
-RUBY_URL="http://localhost:4567"
+RUBY_URL="http://localhost:3000"
 CONCURRENCY=${1:-5}
 
 TOTAL_REQUESTS=0

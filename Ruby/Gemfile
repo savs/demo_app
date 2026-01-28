@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 
-gem 'webrick'
+gem 'rails', '~> 7.1'
+gem 'puma', '~> 6.0'
 
 # OpenTelemetry SDK and exporters
 gem 'opentelemetry-sdk'
@@ -8,3 +9,8 @@ gem 'opentelemetry-exporter-otlp'
 
 # Auto-instrumentation
 gem 'opentelemetry-instrumentation-all'
+gem 'opentelemetry-instrumentation-rails'
+gem 'opentelemetry-instrumentation-rack'
+
+# Logging
+gem 'rails_semantic_logger'

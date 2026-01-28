@@ -40,7 +40,7 @@ services:
       - .env
     environment:
       # OpenTelemetry configuration
-      OTEL_RESOURCE_ATTRIBUTES: "service.name=php-web,deployment.environment=development"
+      OTEL_RESOURCE_ATTRIBUTES: "service.name=php-web,service.namespace=demo,deployment.environment=development"
       OTEL_SERVICE_NAME: php-web
       OTEL_SERVICE_NAMESPACE: demo
       OTEL_ENVIRONMENT: development
@@ -57,13 +57,13 @@ services:
       dockerfile: Dockerfile
     container_name: ruby-app
     ports:
-      - "4567:4567"
+      - "3000:3000"
     restart: unless-stopped
     env_file:
       - .env
     environment:
       # OpenTelemetry configuration
-      OTEL_RESOURCE_ATTRIBUTES: "service.name=ruby-web,deployment.environment=development"
+      OTEL_RESOURCE_ATTRIBUTES: "service.name=ruby-web,service.namespace=demo,deployment.environment=development"
       OTEL_SERVICE_NAME: ruby-web
       OTEL_SERVICE_NAMESPACE: demo
       OTEL_ENVIRONMENT: development
@@ -72,3 +72,4 @@ services:
       # OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
       OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
       OTEL_TRACES_EXPORTER: console,otlp
+      OTEL_LOGS_EXPORTER: otlp
