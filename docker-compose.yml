@@ -63,8 +63,8 @@ services:
       - .env
     environment:
       # OpenTelemetry configuration
-      OTEL_RESOURCE_ATTRIBUTES: "service.name=ruby-web,service.namespace=demo,deployment.environment=development"
-      OTEL_SERVICE_NAME: ruby-web
+      OTEL_RESOURCE_ATTRIBUTES: "service.name=ruby-app,service.namespace=demo,deployment.environment=development"
+      OTEL_SERVICE_NAME: ruby-app
       OTEL_SERVICE_NAMESPACE: demo
       OTEL_ENVIRONMENT: development
       SERVICE_VERSION: ${SERVICE_VERSION:-1.0.0}

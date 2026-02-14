@@ -6,6 +6,10 @@ gem 'puma', '~> 6.0'
 # OpenTelemetry SDK and exporters
 gem 'opentelemetry-sdk'
 gem 'opentelemetry-exporter-otlp'
+# OTLP logs export (ship logs to OpenTelemetry endpoint)
+gem 'opentelemetry-logs-api'
+gem 'opentelemetry-logs-sdk'
+gem 'opentelemetry-exporter-otlp-logs'
 
 # Auto-instrumentation
 gem 'opentelemetry-instrumentation-all'

@@ -13,7 +13,7 @@ if ENV['OTEL_EXPORTER_OTLP_HEADERS']
 end
 
 OpenTelemetry::SDK.configure do |c|
-  c.service_name = ENV['OTEL_SERVICE_NAME'] || 'ruby-web'
+  c.service_name = ENV['OTEL_SERVICE_NAME'] || 'ruby-app'
   
   # Add console exporter if OTEL_TRACES_EXPORTER includes 'console'
   if ENV['OTEL_TRACES_EXPORTER']&.include?('console')

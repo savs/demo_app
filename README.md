@@ -98,7 +98,7 @@ Once started, the applications will be available at:
 ### Ruby on Rails Application
 
 - **Port**: 3000
-- **Service Name**: `ruby-web`
+- **Service Name**: `ruby-app`
 - **Framework**: Ruby on Rails 7.1+
 - **Features**:
   - OpenTelemetry traces exported to Alloy
