@@ -1,0 +1,26 @@
+<h1>Films</h1>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Title</th>
+      <th>Release year</th>
+      <th>Rental rate</th>
+      <th>Length</th>
+      <th>Rating</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @films.each do |film| %>
+      <tr>
+        <td><%= film.film_id %></td>
+        <td><%= film.title %></td>
+        <td><%= film.release_year %></td>
+        <td><%= film.rental_rate %></td>
+        <td><%= film.length %> min</td>
+        <td><%= film.rating %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<%= render "pagila/pagination", current_page: @page, total: @total, per_page: 20, base_path: pagila_films_path %>

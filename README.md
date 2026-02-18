@@ -105,6 +105,18 @@ Once started, the applications will be available at:
   - OpenTelemetry logs exported to Alloy
   - Request logging middleware that logs each HTTP request with trace context
   - Displays server time, Ruby version, Rails version, and all OTEL_ environment variables
+  - **Pagila sample database**: browse films, actors, categories, and customers at http://localhost:3000/pagila
+
+#### If you see "We could not find your database: pagila"
+
+Postgres only runs the Pagila init script when the data directory is empty. If the Postgres container was previously started (e.g. before the init script was fixed), the `pagila` database was never created. Remove the volume and start again so init runs:
+
+```bash
+docker compose down -v
+docker compose up
+```
+
+The first startup may take 1–2 minutes while the Pagila schema and data are downloaded and loaded.
 
 ## Generating Load
 

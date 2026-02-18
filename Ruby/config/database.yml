@@ -1,19 +1,17 @@
-# Minimal database configuration for apps without a database
-# This file exists to satisfy Rails' requirement, but no database connection is made
-
 default: &default
-  adapter: sqlite3
+  adapter: postgresql
+  encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   timeout: 5000
 
 development:
   <<: *default
-  database: ":memory:"
+  url: <%= ENV.fetch("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/pagila") %>
 
 test:
   <<: *default
-  database: ":memory:"
+  url: <%= ENV.fetch("DATABASE_URL_TEST", "postgres://postgres:postgres@localhost:5432/pagila_test") %>
 
 production:
   <<: *default
-  database: ":memory:"
+  url: <%= ENV["DATABASE_URL"] %>

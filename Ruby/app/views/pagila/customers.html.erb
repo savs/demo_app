@@ -1,0 +1,24 @@
+<h1>Customers</h1>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>First name</th>
+      <th>Last name</th>
+      <th>Email</th>
+      <th>Store ID</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @customers.each do |customer| %>
+      <tr>
+        <td><%= customer.customer_id %></td>
+        <td><%= customer.first_name %></td>
+        <td><%= customer.last_name %></td>
+        <td><%= customer.email %></td>
+        <td><%= customer.store_id %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<%= render "pagila/pagination", current_page: @page, total: @total, per_page: 20, base_path: pagila_customers_path %>

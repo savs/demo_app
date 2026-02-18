@@ -1,0 +1,18 @@
+<h1>Categories</h1>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @categories.each do |category| %>
+      <tr>
+        <td><%= category.category_id %></td>
+        <td><%= category.name %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<%= render "pagila/pagination", current_page: @page, total: @total, per_page: 20, base_path: pagila_categories_path %>

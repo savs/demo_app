@@ -3,6 +3,8 @@ class HomeController < ApplicationController
     output = []
     output << "Hello World from Ruby on Rails!"
     output << "Server Time: #{Time.now}"
+    output << ""
+    output << "Browse Pagila sample database: /pagila"
     output << "Ruby Version: #{RUBY_VERSION}"
     output << "Rails Version: #{Rails.version}"
     output << ""

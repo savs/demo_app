@@ -1,0 +1,15 @@
+<%
+  current_page = current_page.to_i
+  per_page = per_page.to_i
+  total_pages = (total.to_f / per_page).ceil
+  total_pages = 1 if total_pages < 1
+%>
+<div class="pagination">
+  <% if current_page > 1 %>
+    <%= link_to "Previous", "#{base_path}?page=#{current_page - 1}" %>
+  <% end %>
+  <span>Page <%= current_page %> of <%= total_pages %> (<%= total %> records)</span>
+  <% if current_page < total_pages %>
+    <%= link_to "Next", "#{base_path}?page=#{current_page + 1}" %>
+  <% end %>
+</div>

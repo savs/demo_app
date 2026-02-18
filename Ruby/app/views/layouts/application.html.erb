@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Demo App</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 1rem 2rem; }
+      a { color: #2563eb; }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { border: 1px solid #e5e7eb; padding: 0.5rem 0.75rem; text-align: left; }
+      th { background: #f3f4f6; }
+      .nav { margin-bottom: 1.5rem; }
+      .nav a { margin-right: 1rem; }
+      .pagination { margin-top: 1rem; }
+    </style>
+  </head>
+  <body>
+    <nav class="nav">
+      <%= link_to "Home", root_path %>
+      <%= link_to "Pagila Browse", pagila_path %>
+    </nav>
+    <%= yield %>
+  </body>
+</html>

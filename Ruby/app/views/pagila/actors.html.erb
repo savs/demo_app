@@ -1,0 +1,20 @@
+<h1>Actors</h1>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>First name</th>
+      <th>Last name</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @actors.each do |actor| %>
+      <tr>
+        <td><%= actor.actor_id %></td>
+        <td><%= actor.first_name %></td>
+        <td><%= actor.last_name %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<%= render "pagila/pagination", current_page: @page, total: @total, per_page: 20, base_path: pagila_actors_path %>
