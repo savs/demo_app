@@ -16,20 +16,22 @@ services:
       - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -h 127.0.0.1 -d postgres"]
       interval: 5s
-      timeout: 5s
+      timeout: 10s
       retries: 10
-      start_period: 120s
+      start_period: 300s
 
   alloy:
     image: grafana/alloy:v1.12.2
     container_name: alloy
+    entrypoint: ["/entrypoint.sh"]
     ports:
       - "12345:12345"
       - 4317:4317
       - 4318:4318
     volumes:
+      - ./docker/alloy/entrypoint.sh:/entrypoint.sh:ro
       - ./alloy/config.alloy:/etc/alloy/config.alloy
       - /proc:/rootproc:ro
       - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
@@ -41,9 +43,17 @@ services:
       - .env
     environment:
       ALLOY_DEPLOY_MODE: docker
+      # Postgres DSN for database observability (secret file at /var/lib/alloy/postgres_secret_pagila)
+      DB_USER: ${DB_USER:-db-o11y}
+      DB_PASSWORD: ${DB_PASSWORD:-db-o11y}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_DATABASE: ${DB_DATABASE:-pagila}
+      DB_SSLMODE: ${DB_SSLMODE:-disable}
     command:
       - run
-      - --server.http.listen-addr=0.0.0.0:12345 
+      - --stability.level=public-preview
+      - --server.http.listen-addr=0.0.0.0:12345
       - /etc/alloy/config.alloy
       - --storage.path=/var/lib/alloy/data
     restart: unless-stopped

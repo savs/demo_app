@@ -262,3 +262,76 @@ otelcol.auth.basic "grafana_cloud" {
 //         }
 //     }
 // }
+
+// Database observability
+local.file "postgres_secret_pagila" {
+  filename  = "/var/lib/alloy/postgres_secret_pagila"
+  is_secret = true
+}
+
+prometheus.exporter.postgres "postgres_pagila" {
+  data_source_names  = [local.file.postgres_secret_pagila.content]
+  enabled_collectors = ["stat_statements"]
+
+  autodiscovery {
+    enabled = true
+    // Only monitor pagila (DSN database); skip postgres to avoid "no tables detected" for system DB
+    database_denylist = ["postgres"]
+    // If running on AWS RDS, also exclude: ["postgres", "rdsadmin"]
+  }
+}
+
+database_observability.postgres "postgres_pagila" {
+  data_source_name  = local.file.postgres_secret_pagila.content
+  forward_to        = [loki.relabel.database_observability_postgres_pagila.receiver]
+  targets           = prometheus.exporter.postgres.postgres_pagila.targets
+  enable_collectors = ["query_details", "query_samples", "schema_details", "explain_plans"]
+
+  // OPTIONAL: provide additional information specific to the cloud provider
+  // that hosts the database to enable certain infrastructure observability
+  // features. See documentation of `database_observability.postgres` for
+  // all supported cloud providers (e.g. AWS, Azure).
+//   cloud_provider {
+//     aws {
+//       arn = "<AWS_RDS_DB_ARN>"
+//     }
+//   }
+}
+
+loki.relabel "database_observability_postgres_pagila" {
+  forward_to = [loki.write.grafana_cloud_loki.receiver]
+
+  // OPTIONAL: add any additional relabeling rules; must be consistent with rules in "discovery.relabel"
+//   rule {
+//     target_label = "instance"
+//     replacement  = "<INSTANCE_LABEL>"
+//   }
+//   rule {
+//     target_label = "<CUSTOM_LABEL_1>"
+//     replacement  = "<CUSTOM_VALUE_1>"
+//   }
+}
+
+discovery.relabel "database_observability_postgres_pagila" {
+  targets = database_observability.postgres.postgres_pagila.targets
+
+  rule {
+    target_label = "job"
+    replacement  = "integrations/db-o11y"
+  }
+
+  // OPTIONAL: add any additional relabeling rules; must be consistent with rules in "loki.relabel"
+//   rule {
+//     target_label = "instance"
+//     replacement  = "<INSTANCE_LABEL>"
+//   }
+//   rule {
+//     target_label = "<CUSTOM_LABEL_1>"
+//     replacement  = "<CUSTOM_VALUE_1>"
+//   }
+}
+
+prometheus.scrape "database_observability_postgres_pagila" {
+  targets    = discovery.relabel.database_observability_postgres_pagila.output
+  forward_to = [prometheus.remote_write.metrics_service.receiver]
+}

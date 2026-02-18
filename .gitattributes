@@ -1,3 +1,4 @@
 # Ensure postgres init files use LF (required in Linux containers)
-docker/postgres/init/*.sh text eol=lf
+docker/**/*.sh text eol=lf
 docker/postgres/init/*.sql text eol=lf
+docker/postgres/*.conf text eol=lf
